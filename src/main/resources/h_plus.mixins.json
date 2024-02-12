@@ -1,0 +1,20 @@
+{
+  "required": true,
+  "package": "com.mr_toad.h_plus.core.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "minVersion": "0.8",
+  "refmap": "h_plus.refmap.json",
+  "mixins": [
+    "global.entity.SkeletonMixin",
+    "global.entity.SpiderMixin",
+    "global.entity.WitherSkeletonMixin",
+    "global.entity.ZombieMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "client": [
+    "client.renderer.AbstractZombieRendererMixin",
+    "client.screen.ShareToLanScreenMixin"
+  ]
+}

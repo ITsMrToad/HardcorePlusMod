@@ -1,0 +1,5 @@
+{
+  "type": "forge:remove_spawns",
+  "entity_types": "minecraft:zombie",
+  "biomes": "#minecraft:biome/spawns_snow_foxes"
+}

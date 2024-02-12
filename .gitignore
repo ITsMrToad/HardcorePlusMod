@@ -1,0 +1,17 @@
+out
+*.ipr
+*.iws
+*.iml
+.idea
+
+build
+.gradle
+
+run
+logs
+
+#forge
+*.log
+.cache
+test
+generated [main]

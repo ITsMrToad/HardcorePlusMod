@@ -1,0 +1,28 @@
+modLoader = "javafml"
+loaderVersion = "[43,)"
+license = "AAR"
+
+[[mods]]
+modId = "h_plus"
+version = "0.9.9-beta"
+displayName = "H+"
+logoFile = "logo.png"
+authors = "Mr.Toad"
+description ='''
+This mod makes your game harder...
+'''
+
+[[dependencies.h_plus]]
+modId = "forge"
+mandatory = true
+versionRange = "[45.1.0,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.h_plus]]
+modId = "toadlib"
+mandatory = true
+versionRange = "[1.0.7,)"
+ordering = "NONE"
+side = "BOTH"
+

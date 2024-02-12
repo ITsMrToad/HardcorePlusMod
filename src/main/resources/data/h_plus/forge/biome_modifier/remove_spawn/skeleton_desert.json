@@ -1,0 +1,5 @@
+{
+  "type": "forge:remove_spawns",
+  "entity_types": "minecraft:skeleton",
+  "biomes": "#minecraft:is_desert"
+}

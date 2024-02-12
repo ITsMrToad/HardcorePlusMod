@@ -1,0 +1,21 @@
+{
+  "h_plus.shareToLan.blocked01" : "You cannot edit the 'Command' or 'GameType', because you in hardcore mode",
+  "h_plus.shareToLan.blocked02" : "BlockedPreset is: 'Commands : false', 'GameType : Survival'",
+
+  "h_plus.deathScreen.youDeath01" : "You were in hardcore... Well...",
+  "h_plus.deathScreen.youDeath02" : "You can spectate the world, open the world to friends or delete the world",
+
+  "entity.h_plus.spiky_snowball" : "Spiky icy snowball",
+  "entity.h_plus.frosted_zombie" : "Martyr",
+  "entity.h_plus.jungle_zombie" : "Putrid",
+  "entity.h_plus.desert_skeleton" : "Bony sandstone",
+  "entity.h_plus.jungle_skeleton" : "Polygonum",
+
+  "item.h_plus.spiky_snowball" : "Spiky icy snowball",
+
+  "item.h_plus.martyr_spawn_egg" : "Martyr spawn egg",
+  "item.h_plus.putrid_spawn_egg" : "Putrid spawn egg",
+  "item.h_plus.bony_sandstone_spawn_egg" : "Bony sandstone spawn egg",
+  "item.h_plus.polygonum_spawn_egg" : "Polygonum spawn egg"
+
+}
