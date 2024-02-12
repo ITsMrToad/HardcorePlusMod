@@ -66,10 +66,7 @@ public class HPlus {
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {
-        event.enqueueWork(() -> {
-            HPMiscUtils.registerSBSR();
-            HPMiscUtils.registerM2E();
-        });
+        event.enqueueWork(HPMiscUtils::registerSBSR);
     }
 
     @SubscribeEvent
