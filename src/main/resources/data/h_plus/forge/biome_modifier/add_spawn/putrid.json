@@ -3,8 +3,8 @@
   "biomes": "#minecraft:is_jungle",
   "spawners": {
     "type": "h_plus:jungle_zombie",
-    "maxCount": 4,
-    "minCount": 4,
+    "maxCount": 5,
+    "minCount": 1,
     "weight": 80
   }
 }
