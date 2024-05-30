@@ -35,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.UUID;
 
-public class HPMiscUtils {
+public class HPOtherUtils {
 
     private static final UUID FOLLOW_RANGE_BOOST_UUID = UUID.fromString("cd20f11c-f086-43ab-b1ec-5552c6e37206");
     private static final UUID ARMOR_BOOST_UUID = UUID.fromString("255238ea-2480-47e3-885b-4547091681d6");
@@ -124,4 +124,15 @@ public class HPMiscUtils {
         SPIDER_BY_SPIDER_RELATION.put(EntityType.SPIDER, HPEntityType.BABY_SPIDER.get());
         SPIDER_BY_SPIDER_RELATION.put(EntityType.CAVE_SPIDER, HPEntityType.BABY_CAVE_SPIDER.get());
     }
+
+     public static boolean isHardcorePlayerDied(Player player) {
+        return player.getPersistentData().getCompound(Player.PERSISTED_NBT_TAG).getBoolean("hardcore_death");
+    }
+
+    public static void hardcorePlayerDied(Player player) {
+        CompoundTag compound = player.getPersistentData().getCompound(Player.PERSISTED_NBT_TAG);
+        compound.putBoolean("hardcore_death", true);
+        player.getPersistentData().put(Player.PERSISTED_NBT_TAG, compound);
+    }
+
 }
