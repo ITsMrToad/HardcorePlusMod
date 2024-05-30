@@ -1,6 +1,15 @@
 # About🩸
 HardcorePlus(aka H+) imroves vanilla difficulty add new mobs
 
+<details>
+<summary>Attentions:</summary>
+ 
+  - Planed a full transition to NeoForged!
+
+  - Addon(HS) now the independent mods
+</details>
+
+
 ***
 
 **Features⭐:**
@@ -65,29 +74,8 @@ On Hardcore:
 
 ***
 
-**Planned addons 📑:**
-* HS(H-Stages)
-* HN(H-Nightmare mode)
-
-***
-
 **Available languages🌐:**
 * ru_ru(Mr.Toad)
 * en_us(Mr.Toad)
-* If you want to help me and translate the mod into other languages / improve existing ones, then write to discord (it will be in the future)
 
-***
-
-<details>
-<summary>For Dev</summary>
- 
-  ~~0. Wait for the release version(Optional, but recommended)~~
- 
-  1. Implement and add to dependencies ToadLib 1.0.7 or greater
- 
-  2. Implement and add to dependencies this mod
- 
-  3. use the api to create addons!🛠️
-
-</details>
 
