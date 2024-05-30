@@ -3,8 +3,8 @@
   "biomes": "#minecraft:biome/spawns_snow_foxes",
   "spawners": {
     "type": "h_plus:frosted_zombie",
-    "maxCount": 4,
-    "minCount": 4,
+    "maxCount": 2,
+    "minCount": 1,
     "weight": 80
   }
 }
