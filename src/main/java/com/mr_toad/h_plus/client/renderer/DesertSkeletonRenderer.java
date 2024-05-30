@@ -32,6 +32,13 @@ public class DesertSkeletonRenderer extends SkeletonRenderer {
 
     @Override
     public ResourceLocation getTextureLocation(AbstractSkeleton skeleton) {
-        return DESERT;
+        return this.getVariantTexture((DesertSkeleton) skeleton);
+    }
+  
+    public ResourceLocation getVariantTexture(DesertSkeleton skeleton) {
+        return switch (skeleton.getVariant()) {
+            case DESERT -> DESERT;
+            case BADLANDS -> BADLANDS;
+        };
     }
 }
