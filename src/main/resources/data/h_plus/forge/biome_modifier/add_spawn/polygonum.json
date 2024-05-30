@@ -5,7 +5,7 @@
   "spawners": {
     "type": "h_plus:jungle_skeleton",
     "maxCount": 4,
-    "minCount": 4,
-    "weight": 80
+    "minCount": 3,
+    "weight": 90
   }
 }
