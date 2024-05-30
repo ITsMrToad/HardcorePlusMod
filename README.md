@@ -78,4 +78,7 @@ On Hardcore:
 * ru_ru(Mr.Toad)
 * en_us(Mr.Toad)
 
+### [Support Me On Boosty⚡](https://boosty.to/mr_toad)
+
+
 
