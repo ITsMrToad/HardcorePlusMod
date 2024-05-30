@@ -2,20 +2,26 @@ package com.mr_toad.h_plus.core;
 
 import com.mojang.logging.LogUtils;
 import com.mr_toad.h_plus.client.model.geom.HPModelLayers;
-import com.mr_toad.h_plus.client.renderer.*;
-import com.mr_toad.h_plus.common.entity.monster.DesertSkeleton;
-import com.mr_toad.h_plus.common.entity.monster.FrostedZombie;
-import com.mr_toad.h_plus.common.entity.monster.JungleSkeleton;
-import com.mr_toad.h_plus.common.entity.monster.JungleZombie;
+import com.mr_toad.h_plus.client.renderer.BabyCaveSpiderRenderer;
+import com.mr_toad.h_plus.client.renderer.BabySpiderRenderer;
+import com.mr_toad.h_plus.client.renderer.DesertSkeletonRenderer;
+import com.mr_toad.h_plus.client.renderer.FrostedZombieRenderer;
+import com.mr_toad.h_plus.client.renderer.JungleSkeletonRenderer;
+import com.mr_toad.h_plus.client.renderer.JungleZombieRenderer;
 import com.mr_toad.h_plus.common.util.HPMiscUtils;
 import com.mr_toad.h_plus.core.config.HPConfig;
 import com.mr_toad.h_plus.core.init.HPEntityType;
 import com.mr_toad.h_plus.core.init.HPItems;
+import com.mr_toad.h_plus.core.init.HPSoundEvents;
+import com.mr_toad.h_plus.core.message.MessageC2SPlayerDied;
 import com.mr_toad.lib.event.ToadEventFactory;
 import net.minecraft.client.model.HumanoidArmorModel;
 import net.minecraft.client.model.SkeletonModel;
 import net.minecraft.client.model.geom.builders.CubeDeformation;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.SpawnPlacements;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.EntityRenderersEvent;
@@ -29,6 +35,9 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.simple.SimpleChannel;
 import org.slf4j.Logger;
 
 
@@ -45,12 +54,17 @@ public class HPlus {
     private static final LayerDefinition OUTER = LayerDefinition.create(HumanoidArmorModel.createBodyLayer(OUTER_ARMOR_DEFORMATION), 64, 32);
     private static final LayerDefinition INNER = LayerDefinition.create(HumanoidArmorModel.createBodyLayer(INNER_ARMOR_DEFORMATION), 64, 32);
 
+    public static final String PROTOCOL_VERSION = "1";
+
+    public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(new ResourceLocation(MODID, "net"), () -> PROTOCOL_VERSION, PROTOCOL_VERSION::equals, PROTOCOL_VERSION::equals);
+  
     public HPlus() {
         final ModLoadingContext ctx = ModLoadingContext.get();
         final IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
 
         HPEntityType.ENTITIES.register(bus);
         HPItems.ITEMS.register(bus);
+        HPSoundEvents.SOUNDS.register(bus);
 
         bus.addListener(this::commonSetup);
 
@@ -66,15 +80,16 @@ public class HPlus {
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {
+        CHANNEL.messageBuilder(MessageC2SPlayerDied.class, 0, NetworkDirection.PLAY_TO_CLIENT).encoder(MessageC2SPlayerDied::write).decoder(MessageC2SPlayerDied::read).consumerMainThread(MessageC2SPlayerDied::handle).add();
         event.enqueueWork(HPMiscUtils::registerSBSR);
     }
 
     @SubscribeEvent
     public static void registerSpawns(SpawnPlacementRegisterEvent event) {
-        ToadEventFactory.registerOnGroundMBNLAnd(HPEntityType.DESERT_SKELETON.get(), DesertSkeleton::checkDSSpawnRules, event);
-        ToadEventFactory.registerOnGroundMBNLAnd(HPEntityType.JUNGLE_ZOMBIE.get(), JungleZombie::checkJZSpawnRules, event);
-        ToadEventFactory.registerOnGroundMBNLAnd(HPEntityType.JUNGLE_SKELETON.get(), JungleSkeleton::checkJSSpawnRules, event);
-        ToadEventFactory.registerOnGroundMBNLAnd(HPEntityType.FROSTED_ZOMBIE.get(), FrostedZombie::checkFZSpawnRules, event);
+        event.register(HPEntityType.DESERT_SKELETON.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, DesertSkeleton::checkDSSpawnRules, SpawnPlacementRegisterEvent.Operation.AND);
+        event.register(HPEntityType.JUNGLE_ZOMBIE.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, JungleZombie::checkJZSpawnRules, SpawnPlacementRegisterEvent.Operation.REPLACE);
+        event.register(HPEntityType.JUNGLE_SKELETON.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, JungleSkeleton::checkJSSpawnRules, SpawnPlacementRegisterEvent.Operation.AND);
+        event.register(HPEntityType.FROSTED_ZOMBIE.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, FrostedZombie::checkFZSpawnRules, SpawnPlacementRegisterEvent.Operation.AND);
     }
 
 
