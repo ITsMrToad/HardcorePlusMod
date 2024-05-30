@@ -46,6 +46,7 @@ public class SpidersAttack implements CustomSpawner {
                             boolean canSpawnCave = rand.nextInt(10) == 0 && player.blockPosition().getY() < 10;
                             this.spawnInCaves(serverLevel, blockpos, canSpawnCave);
                         }
+                        return 1;
                     }
                 }
             }
@@ -55,8 +56,7 @@ public class SpidersAttack implements CustomSpawner {
     }
 
     private void spawnInCaves(ServerLevel serverLevel, BlockPos blockPos, boolean isCave) {
-        int calcValue = 2;
-        int randomized = serverLevel.getRandom().nextInt(10) + calcValue;
+        int randomized = serverLevel.getRandom().nextInt(10) + 2;
         if (serverLevel.getBiome(blockPos).is(Tags.Biomes.IS_CAVE)) {
             for (int i = 0; i < randomized; ++i) {
                 this.spawnSpiders(blockPos, serverLevel, isCave);
@@ -67,11 +67,8 @@ public class SpidersAttack implements CustomSpawner {
     private void spawnSpiders(BlockPos blockPos, ServerLevel serverLevel, boolean isCave) {
         Spider spider = isCave ? EntityType.CAVE_SPIDER.create(serverLevel) : EntityType.SPIDER.create(serverLevel);
         if (spider == null) return;
-
-        if (serverLevel.getBiome(spider.blockPosition()).is(Tags.Biomes.IS_CAVE)) {
-            spider.moveTo(blockPos, 0.0F, 0.0F);
-            spider.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(blockPos), MobSpawnType.NATURAL, (SpawnGroupData) null, (CompoundTag) null);
-            serverLevel.addFreshEntityWithPassengers(spider);
-        }
+        spider.moveTo(blockPos, 0.0F, 0.0F);
+        spider.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(blockPos), MobSpawnType.NATURAL, (SpawnGroupData) null, (CompoundTag) null);
+        serverLevel.addFreshEntityWithPassengers(spider);
     }
 }
