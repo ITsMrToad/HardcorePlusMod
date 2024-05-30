@@ -40,6 +40,41 @@ public class HPCommonEvents {
     public static final SpidersAttack SPIDERS_ATTACK = new SpidersAttack();
 
     @SubscribeEvent
+    public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
+        if (!event.getEntity().level.isClientSide() && event.getEntity() instanceof ServerPlayer player && HPMiscUtils.isHardcorePlayerDied(player)) {
+            HPlus.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new MessageC2SPlayerDied());
+            player.setGameMode(GameType.SPECTATOR);
+            player.level.getGameRules().getRule(GameRules.RULE_SPECTATORSGENERATECHUNKS).set(false, player.server);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onLivingDie(LivingDeathEvent event) {
+        DamageSource source = event.getSource();
+        Entity zombie = source.getEntity();
+        Entity entity = event.getEntity();
+
+        if (DifficultyPredicates.isHard(entity.level) && zombie instanceof LivingEntity livingZombie) {
+            if (livingZombie.isAlive() && livingZombie.getType().is(ToadlyTags.ToadlyEntityTypeTags.ZOMBIES)) {
+                if (livingZombie.getHealth() < livingZombie.getMaxHealth()) {
+                    LevelData data = entity.level.getLevelData();
+                    float toHeal = data.isHardcore() ? 2.0F : 1.0F;
+                    if (livingZombie.getType() == EntityType.DROWNED) {
+                        toHeal -= 1.0F;
+                    }
+
+                    livingZombie.heal(toHeal);
+                }
+            }
+        }
+
+        if (event.getEntity() instanceof ServerPlayer player && player.server.isSingleplayer() && player.server.isHardcore()) {
+            HPMiscUtils.hardcorePlayerDied(player);
+            HPlus.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new MessageC2SPlayerDied());
+        }
+    }
+    
+    @SubscribeEvent
     public static void onBaseAttributeModification(EntityAttributeModificationEvent event) {
         Minecraft minecraft = Minecraft.getInstance();
         Level level = minecraft.level;
@@ -63,8 +98,8 @@ public class HPCommonEvents {
         }
     }
 
-    @SubscribeEvent
-    public static void onEntityLoad(EntityJoinLevelEvent event) {
+    @SubscribeEvent(priority = EventPriority.LOW)
+    public static void onEntityJoin(EntityJoinLevelEvent event) {
         Level level = event.getLevel();
         if (level.dimension() == Level.OVERWORLD && !level.isClientSide()) {
             HPMiscUtils.entityStatsChange(event.getEntity());
@@ -72,13 +107,18 @@ public class HPCommonEvents {
 
         if (event.getEntity() instanceof Pillager pillager && HPConfig.canPillagerRetreat.get()) {
             pillager.goalSelector.addGoal(1, new PillagerRetreatGoal(pillager));
-        } else if (event.getEntity() instanceof Zombie zombie && HPConfig.allowHungryZombies.get()) {
-            ZombieStealHPGoal stealHPGoal = new ZombieStealHPGoal(zombie);
-            zombie.goalSelector.addGoal(2, stealHPGoal);
-            zombie.targetSelector.addGoal(5, new AttackTargetIfAccessedGoal<>(zombie, Animal.class, stealHPGoal));
         } else if (event.getEntity() instanceof Spider spider) {
             SpiderSpawnsDataContainer dataContainer = (SpiderSpawnsDataContainer) spider;
             spider.goalSelector.addGoal(5, new SpiderSpawnBabiesGoal(spider, dataContainer));
+        }
+      
+        if (!event.loadedFromDisk()) return;
+        Entity entity = event.getEntity();
+        if (!event.getLevel().isClientSide() && entity instanceof ServerPlayer player && HPMiscUtils.isHardcorePlayerDied(player)) {
+            HPlus.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new MessageC2SPlayerDied());
+            if (player.gameMode.getGameModeForPlayer() != GameType.SPECTATOR) {
+                player.setGameMode(GameType.SPECTATOR);
+            }
         }
     }
 
@@ -87,11 +127,11 @@ public class HPCommonEvents {
         boolean hardcore = event.getEntity().level.getLevelData().isHardcore();
         int i = event.getEntity().getRandom().nextInt(2);
         int j = hardcore ? 2 : 0;
-        int k = event.getEntity().getRandom().nextInt(100);
+        int k = event.getEntity().getRandom().nextInt(50);
 
         if (event.getEntity() instanceof Spider spider) {
             SpiderSpawnsDataContainer spiderSpawnsDataContainer = (SpiderSpawnsDataContainer) spider;
-            spiderSpawnsDataContainer.setCanSpawn(k > 150);
+            spiderSpawnsDataContainer.setCanSpawn(k > 48);
             if (spiderSpawnsDataContainer.canSpawn()) {
                 spiderSpawnsDataContainer.setSpidersCount(i + j + HPConfig.countOfSpawnsBabies.get());
             }
@@ -99,7 +139,7 @@ public class HPCommonEvents {
 
         if (event.getEntity() instanceof CaveSpider caveSpider) {
             SpiderSpawnsDataContainer caveSpiderData = (SpiderSpawnsDataContainer) caveSpider;
-            caveSpiderData.setCanSpawn(k > 100);
+            caveSpiderData.setCanSpawn(k > 43);
             if (caveSpiderData.canSpawn()) {
                 caveSpiderData.setSpidersCount(i + j + HPConfig.countOfSpawnsBabies.get());
             }
