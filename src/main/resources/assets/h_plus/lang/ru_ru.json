@@ -2,16 +2,18 @@
   "h_plus.shareToLan.blocked01" : "Пресет LAN заблокирован, потому что вы в хардкоре",
   "h_plus.shareToLan.blocked02" : "Заблокированный пресет: 'Комманды : выключенны', 'Режим игры : Выживание'",
 
-  "h_plus.deathScreen.youDeath01" : "Вы были в хардкоре... ну...",
-  "h_plus.deathScreen.youDeath02" : "Вы можете наблюдать за миром, открыть его для друзей или... удалить мир",
+  "h_plus.hardcore_death.delete" : "Удалить этот мир.",
+  "h_plus.hardcore_death.deleting" : "Удаление %s...",
+  "h_plus.hardcore_death.alive_players" : "Вы не можете удалить этот мир. Осталось(-ся) %s живых(-ой) игрок(-ов).",
+  "h_plus.hardcore_death.no_permissions" : "У вас недостаточно прав для удаления мира.",
 
-  "entity.h_plus.spiky_snowball" : "Колючий ледяной снежок",
+  "entity.h_plus.spiky_snowball" : "Ледяной снежок",
   "entity.h_plus.frosted_zombie" : "Страдалец",
   "entity.h_plus.jungle_zombie" : "Гнилой",
   "entity.h_plus.desert_skeleton" : "Костлявый песчаник",
   "entity.h_plus.jungle_skeleton" : "Горец",
 
-  "item.h_plus.spiky_snowball" : "Колючий ледяной снежок",
+  "item.h_plus.spiky_snowball" : "Ледяной снежок",
 
   "item.h_plus.martyr_spawn_egg" : "Яйцо призыва страдалеца",
   "item.h_plus.putrid_spawn_egg" : "Яйцо призыва гнилого",
