@@ -1,6 +1,6 @@
 {
   "values": [
-    "minecraft:desert",
-    "minecraft:badlands"
+    "#forge:is_desert",
+    "#minecraft:is_badlands"
   ]
 }
