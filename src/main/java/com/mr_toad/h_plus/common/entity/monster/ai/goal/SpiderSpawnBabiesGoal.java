@@ -4,7 +4,6 @@ import com.mr_toad.h_plus.common.util.entitydata.SpiderSpawnsDataContainer;
 import com.mr_toad.h_plus.core.config.HPConfig;
 import com.mr_toad.h_plus.core.init.HPEntityType;
 import com.mr_toad.lib.api.util.DifficultyPredicates;
-import com.mr_toad.lib.api.util.time.Disposable;
 import com.mr_toad.lib.api.util.time.IntegerCooldown;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -20,10 +19,9 @@ import net.minecraftforge.event.ForgeEventFactory;
 
 public class SpiderSpawnBabiesGoal extends Goal {
 
-    private final Monster mob;
+   private final Monster mob;
     private final SpiderSpawnsDataContainer dataContainer;
 
-    private final Disposable disposable = Disposable.createNull(this.getClass().getSimpleName() + ":Disposable");
     private final IntegerCooldown cooldownTickReq = new IntegerCooldown(40, "SpiderSpawnBabiesReqCooldown").setImmutable();
 
     public SpiderSpawnBabiesGoal(Monster mob, SpiderSpawnsDataContainer dataContainer) {
@@ -39,7 +37,7 @@ public class SpiderSpawnBabiesGoal extends Goal {
                     this.cooldownTickReq.tickDown();
                     return false;
                 } else {
-                    return this.disposable.canUse() && this.dataContainer.canSpawn();
+                    return this.dataContainer.canSpawn();
                 }
             }
         }
@@ -52,8 +50,6 @@ public class SpiderSpawnBabiesGoal extends Goal {
         super.start();
         if (!this.dataContainer.canSpawn()) return;
         ServerLevel serverlevel = (ServerLevel) this.mob.level;
-        int count = this.dataContainer.getSpidersCount();
-        this.dataContainer.setSpidersCount(count);
         for (int k = 0; k < 4; ++k) {
             RandomSource rand = this.mob.getRandom();
             BlockPos blockpos = this.getPos(rand);
@@ -74,7 +70,6 @@ public class SpiderSpawnBabiesGoal extends Goal {
     public void stop() {
         super.stop();
         this.dataContainer.setCanSpawn(false);
-        this.disposable.setUsed();
     }
 
     public BlockPos getPos(RandomSource source) {
