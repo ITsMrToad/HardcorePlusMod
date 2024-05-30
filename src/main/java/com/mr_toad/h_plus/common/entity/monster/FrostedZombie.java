@@ -4,48 +4,62 @@ import com.mr_toad.h_plus.common.entity.monster.variant.FrostedZombieVariant;
 import com.mr_toad.h_plus.common.entity.projectile.FrostedSnowball;
 import com.mr_toad.h_plus.common.util.HPMiscUtils;
 import com.mr_toad.h_plus.core.config.HPConfig;
+import com.mr_toad.h_plus.core.init.HPSoundEvents;
+import com.mr_toad.lib.api.entity.HybridAttackType;
+import com.mr_toad.lib.api.entity.entitydata.HybridAttackDataContainer;
+import com.mr_toad.lib.api.entity.entitydata.ToadlyEntityDataSerializers;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.sounds.SoundEvents;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.entity.VariantHolder;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.MoveThroughVillageGoal;
 import net.minecraft.world.entity.ai.goal.RangedAttackGoal;
+import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.ZombieAttackGoal;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.npc.AbstractVillager;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
+
 import org.jetbrains.annotations.Nullable;
-
 import javax.annotation.ParametersAreNonnullByDefault;
-
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class FrostedZombie extends Zombie implements VariantHolder<FrostedZombieVariant>, RangedAttackMob {
+public class FrostedZombie extends Zombie implements VariantHolder<FrostedZombieVariant>, RangedAttackMob, HybridAttackDataContainer {
 
+    private static final  EntityDataAccessor<HybridAttackType> ATTACK_TYPE = SynchedEntityData.defineId(FrostedZombie.class, ToadlyEntityDataSerializers.HYBRID_ATTACK_TYPE);
     private static final EntityDataAccessor<Integer> TYPE = SynchedEntityData.defineId(FrostedZombie.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Byte> ATTACK_TYPE = SynchedEntityData.defineId(FrostedZombie.class, EntityDataSerializers.BYTE);
 
     private final ZombieAttackGoal zombieAttackGoal = new ZombieAttackGoal(this, 1.0D, false);
-    private final RangedAttackGoal rangedAttackGoal = new RangedAttackGoal(this, 1.25D, 20, 10.0F);
+    private final RangedAttackGoal rangedAttackGoal = new RangedAttackGoal(this, 1.0D, 7, 11, 14.0F);
 
     public FrostedZombie(EntityType<? extends Zombie> etz, Level lvl) {
         super(etz, lvl);
         this.setPathfindingMalus(BlockPathTypes.WATER, -1.0F);
         this.setPathfindingMalus(BlockPathTypes.DANGER_POWDER_SNOW, -1.0F);
-        this.reassessGoals();
     }
 
     public static AttributeSupplier.Builder createFrostedZombieAttributes() {
@@ -57,21 +71,65 @@ public class FrostedZombie extends Zombie implements VariantHolder<FrostedZombie
     }
 
     @Override
+    protected void addBehaviourGoals() {
+        this.goalSelector.addGoal(6, new MoveThroughVillageGoal(this, 1.0D, true, 4, this::canBreakDoors));
+        this.goalSelector.addGoal(7, new WaterAvoidingRandomStrollGoal(this, 1.0D));
+
+        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
+        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, AbstractVillager.class, false));
+        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, IronGolem.class, true));
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (this.isEffectiveAi() && this.level instanceof ServerLevel serverLevel) {
+            ResourceKey<Level> resourcekey = serverLevel.dimension();
+            if (resourcekey == ServerLevel.NETHER) {
+                this.setSecondsOnFire(4);
+            }
+        }
+    }
+
+    @Override
+    public void aiStep() {
+        super.aiStep();
+        LivingEntity target = this.getTarget();
+        if (target != null && this.isEffectiveAi()) {
+            if (this.distanceTo(target) <= 4.0F) {
+                this.setAttackType(HybridAttackType.MELEE);
+            } else {
+                this.setAttackType(HybridAttackType.RANGED);
+            }
+        }
+    }
+
+    @Override
+    public void onSyncedDataUpdated(EntityDataAccessor<?> dataAccessor) {
+        if (dataAccessor.equals(ATTACK_TYPE)) {
+            this.updateMainGoals();
+        }
+        super.onSyncedDataUpdated(dataAccessor);
+    }
+    
+    @Override
     protected void defineSynchedData() {
-        this.entityData.define(ATTACK_TYPE, (byte) 0);
         this.entityData.define(TYPE, 0);
+        this.entityData.define(ATTACK_TYPE, HybridAttackType.MELEE);
         super.defineSynchedData();
     }
 
     @Override
     public void addAdditionalSaveData(CompoundTag nbt) {
         nbt.putString("Variant", this.getVariant().getSerializedName());
+        this.saveAttackType(nbt);
         super.addAdditionalSaveData(nbt);
     }
 
     @Override
     public void readAdditionalSaveData(CompoundTag nbt) {
         this.setVariant(FrostedZombieVariant.byName(nbt.getString("Variant")));
+        this.loadAttackType(nbt);
         super.readAdditionalSaveData(nbt);
     }
 
@@ -85,13 +143,16 @@ public class FrostedZombie extends Zombie implements VariantHolder<FrostedZombie
         this.entityData.set(TYPE, variant.getId());
     }
 
-    public byte getAttackType() {
+    @Override
+    public HybridAttackType getAttackType() {
         return this.entityData.get(ATTACK_TYPE);
     }
 
-    public void setAttackType(byte type) {
-        this.entityData.define(ATTACK_TYPE, type);
+    @Override
+    public void setAttackType(HybridAttackType type) {
+        this.entityData.set(ATTACK_TYPE, type);
     }
+
 
     @Override
     public boolean doHurtTarget(Entity entity) {
@@ -99,7 +160,8 @@ public class FrostedZombie extends Zombie implements VariantHolder<FrostedZombie
             return false;
         } else {
             if (entity instanceof LivingEntity living && entity.getType() != EntityType.IRON_GOLEM) {
-                living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 300), this);
+                int mul = this.level.getLevelData().isHardcore() ? 2 : 1;
+                living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 100 * mul), this);
             }
             return true;
         }
@@ -108,11 +170,7 @@ public class FrostedZombie extends Zombie implements VariantHolder<FrostedZombie
     @Nullable
     @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor accessor, DifficultyInstance instance, MobSpawnType spawnType, @Nullable SpawnGroupData groupData, @Nullable CompoundTag nbt) {
-        int i = this.getRandom().nextInt(100);
-        int j = this.getRandom().nextInt(50);
-        FrostedZombieVariant variant = i > 50 ? FrostedZombieVariant.VAR_B : FrostedZombieVariant.VAR_A;
-        byte attackType = (byte) (j > 25 ? 1 : 0);
-        this.setAttackType(attackType);
+        FrostedZombieVariant variant = this.getRandom().nextInt(100) > 65 ? FrostedZombieVariant.VAR_B : FrostedZombieVariant.VAR_A;
         this.setVariant(variant);
         return super.finalizeSpawn(accessor, instance, spawnType, groupData, nbt);
     }
@@ -120,28 +178,29 @@ public class FrostedZombie extends Zombie implements VariantHolder<FrostedZombie
     @Override
     public void performRangedAttack(LivingEntity entity, float f0) {
         if (this.getAttackType() == 1) {
-            FrostedSnowball snowball = new FrostedSnowball(this.level, this);
+            FrostedSnowball frostedSnowball = new FrostedSnowball(this.level, this);
 
-            double d0 = entity.getEyeY() - (double) 1.1F;
-            double d1 = entity.getX() - this.getX();
-            double d2 = d0 - snowball.getY();
-            double d3 = entity.getZ() - this.getZ();
-            double d4 = Math.sqrt(d1 * d1 + d3 * d3) * (double) 0.2F;
+            double d0 = entity.getX() - this.getX();
+            double d1 = entity.getY(0.3333333333333333D) - frostedSnowball.getY();
+            double d2 = entity.getZ() - this.getZ();
+            double d3 = Math.sqrt(d0 * d0 + d2 * d2);
 
-            snowball.shoot(d1, d2 + d4, d3, 1.6F, 12.0F);
+            frostedSnowball.shoot(d0, d1 + d3 * (double)0.2F, d2, 1.6F, (float)(14 - this.level.getDifficulty().getId() * 4));
 
-            this.playSound(SoundEvents.SNOW_GOLEM_SHOOT, 1.0F, 0.4F / (this.getRandom().nextFloat() * 0.4F + 0.8F));
-            this.level.addFreshEntity(snowball);
+            this.playSound(HPSoundEvents.FROSTED_ZOMBIE_SHOOT.get(), 1.0F, 1.0F / (this.getRandom().nextFloat() * 0.4F + 0.8F));
+            this.level.addFreshEntity(frostedSnowball);
         }
     }
 
-    public void reassessGoals() {
-        if (this.getAttackType() == 0) {
-            this.goalSelector.addGoal(1, this.zombieAttackGoal);
-            this.goalSelector.removeGoal(this.rangedAttackGoal);
-        } else if (this.getAttackType() == 1) {
-            this.goalSelector.addGoal(1, this.rangedAttackGoal);
-            this.goalSelector.removeGoal(this.zombieAttackGoal);
+    public void updateMainGoals() {
+        if (this.isEffectiveAi()) {
+            this.goalSelector.removeGoal(this.meleeGoal);
+            this.goalSelector.removeGoal(this.rangedGoal);
+            if (this.getAttackType() == HybridAttackType.RANGED) {
+                this.goalSelector.addGoal(2, this.rangedGoal);
+            } else {
+                this.goalSelector.addGoal(2, this.meleeGoal);
+            }
         }
     }
 }
