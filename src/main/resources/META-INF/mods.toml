@@ -1,6 +1,6 @@
 modLoader = "javafml"
 loaderVersion = "[43,)"
-license = "AAR"
+license = "GPLV3"
 
 [[mods]]
 modId = "h_plus"
