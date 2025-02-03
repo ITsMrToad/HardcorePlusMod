@@ -1,0 +1,8 @@
+{
+  "entity.martyr.shoot": {
+    "sounds": [
+      "mob/snowman/shoot"
+    ],
+    "subtitle": "h_plus.sub.martyr.shoot"
+  }
+}
