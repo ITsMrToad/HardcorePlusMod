@@ -12,6 +12,9 @@ public class HPSoundEvents {
 
     public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, HPlus.MODID);
 
-    public static final RegistryObject<SoundEvent> FROSTED_ZOMBIE_SHOOT = ToadOtherUtils.registerSounds("martyr_shoot", HPlus.MODID, SOUNDS, OptionalFloat.empty());
+    public static final RegistryObject<SoundEvent> FROSTED_ZOMBIE_SHOOT = registerSound("entity.martyr.shoot");
 
+    public static RegistryObject<SoundEvent> registerSound(String name) {
+        return SOUNDS.register(name, () -> ToadOtherUtils.createSound(name, ToadLib.MODID, OptionalFloat.empty()));
+    }
 }
